@@ -5,9 +5,12 @@
   --grass: #2d5016;
   --grass-light: #4a7c23;
   --sky: #4a90d9;
-  --orange: #e85d04;
-  --orange-dark: #c94e00;
+  /* Primary action orange must stay WCAG AA with white label text (>=4.5:1).
+     Bright brand spark (#e85d04) is reserved for non-text marks via --orange-bright. */
+  --orange: #c2410c;
+  --orange-dark: #9a3412;
   --orange-soft: #fff0e7;
+  --orange-bright: #e85d04;
   --cream: #fef9f0;
   --cream-deep: #f5f0e6;
   --paper: #ffffff;
@@ -38,6 +41,7 @@
   --color-orange: var(--orange);
   --color-orange-dark: var(--orange-dark);
   --color-orange-soft: var(--orange-soft);
+  --color-orange-bright: var(--orange-bright);
   --color-cream: var(--cream);
   --color-cream-deep: var(--cream-deep);
   --color-paper: var(--paper);

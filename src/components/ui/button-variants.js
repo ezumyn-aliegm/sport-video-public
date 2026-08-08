@@ -5,7 +5,7 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-[var(--orange)] text-white shadow-[0_5px_14px_rgba(232,93,4,.2)] hover:-translate-y-px hover:bg-[var(--orange-dark)] hover:shadow-[0_8px_18px_rgba(232,93,4,.25)]',
+        primary: 'bg-[var(--orange)] text-white shadow-[0_5px_14px_rgba(194,65,12,.22)] hover:-translate-y-px hover:bg-[var(--orange-dark)] hover:shadow-[0_8px_18px_rgba(154,52,18,.28)]',
         secondary: 'border border-[var(--line)] bg-[var(--paper)] text-[var(--grass)] hover:border-[var(--sky)] hover:bg-[#f9fcff]',
         ghost: 'bg-transparent text-[var(--grass)] hover:bg-[var(--cream-deep)]',
         icon: 'h-11 w-11 rounded-full bg-[var(--cream-deep)] p-0 text-[var(--grass)] text-2xl leading-none hover:bg-[var(--orange-soft)]',
