@@ -3,7 +3,7 @@
 Screenshots were rendered from the API-backed product at 1280x1000 and 390x844 after the timeline loaded. Generated assets from the Event/Moment design handoff are consumed from `public/assets/generated/`.
 
 Reference translation: FamilyAlbum warmth + Google Photos chronological scan + Hudl event/moment sports context.
-Foundation translation: rounded Card, Button, Tabs/filter, Form/Input, and Dialog primitives implemented with the existing React/CSS token layer.
+Foundation translation: reusable shadcn-style Button, Card, Tabs/filter, Form/Input, and Radix Dialog primitives implemented on Tailwind v4 with the existing brand token layer.
 
 | Dimension | Weight | Score | Screenshot-grounded justification |
 |---|---:|---:|---|

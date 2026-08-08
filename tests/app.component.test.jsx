@@ -185,6 +185,32 @@ describe('timeline UI', () => {
     expect(screen.getByRole('dialog').querySelector('.dialog-scroll')).toBeTruthy();
   });
 
+  it('renders Radix-backed tabs and dialog state through the shadcn primitives', async () => {
+    installApi();
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Mountain West Open' });
+
+    expect(screen.getByRole('tab', { name: 'All family' }).getAttribute('data-state')).toBe('active');
+    fireEvent.click(screen.getByRole('button', { name: 'Mountain West Open' }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog.getAttribute('data-state')).toBe('open');
+    expect(dialog.querySelector('.dialog-scroll')).toBeTruthy();
+    expect(dialog.getAttribute('aria-describedby')).toBeTruthy();
+  });
+
+  it('keeps the custom dialog geometry from applying Radix translation utilities twice', async () => {
+    installApi();
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Mountain West Open' });
+    fireEvent.click(screen.getByRole('button', { name: 'Mountain West Open' }));
+
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog.className).toContain('dialog-card');
+    expect(dialog.className).not.toContain('-translate-x-1/2');
+    expect(dialog.className).not.toContain('-translate-y-1/2');
+  });
+
   it('starts a fresh event flow after closing an event detail dialog', async () => {
     installApi();
     render(<App />);

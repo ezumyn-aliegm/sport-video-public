@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+@import "tailwindcss";
 
 :root {
   --grass: #2d5016;
@@ -27,6 +28,23 @@
   background: var(--cream);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+}
+
+@theme inline {
+  --font-sans: Nunito, "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --color-grass: var(--grass);
+  --color-grass-light: var(--grass-light);
+  --color-sky: var(--sky);
+  --color-orange: var(--orange);
+  --color-orange-dark: var(--orange-dark);
+  --color-orange-soft: var(--orange-soft);
+  --color-cream: var(--cream);
+  --color-cream-deep: var(--cream-deep);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-soft-ink: var(--soft-ink);
+  --color-line: var(--line);
 }
 
 * { box-sizing: border-box; }

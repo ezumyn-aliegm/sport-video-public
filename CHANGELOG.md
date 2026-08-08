@@ -12,6 +12,7 @@ All notable changes to Our Team Memories are documented here.
 - Event, moment, clip, athlete, and composite capture API routes with structured errors, ownership validation, and sport-pack validation.
 - Event-first, moment-first, and clip-first UI flows with real file input and honest mock/pending YouTube status.
 - Generated multi-sport imagery, event-parent cards, nested moment rows, event and moment detail dialogs, keyboard focus management, and responsive family timeline layouts.
+- Reusable Tailwind v4 and shadcn/Radix primitives now back the buttons, cards, forms, tabs, filters, and dialogs without changing the warm family-sports visual language.
 - Product and operator documentation for API-first UI state, Compose-safe bcrypt values, port 3015, main-SHA-only deployment, the private free-plan branch-protection limitation, and no public HTTPS claim.
 
 ### Fixed
