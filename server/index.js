@@ -968,7 +968,8 @@ export const createApp = (options = {}) => {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      // Keep direct HTTP/LAN QA usable while retaining Secure cookies on HTTPS.
+      secure: isProduction ? 'auto' : false,
       sameSite: 'lax',
       maxAge: 1000 * 60 * 60 * 24 * 30,
     },

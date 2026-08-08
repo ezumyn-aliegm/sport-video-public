@@ -105,6 +105,64 @@ test('auth gates the catalog and lock destroys the session', async () => {
   assert.deepEqual(result.body, { authenticated: false });
 });
 
+test('production HTTP unlock establishes a session for direct LAN access', async () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  const productionDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sport-video-production-auth-'));
+  let productionDb;
+  let productionServer;
+  process.env.NODE_ENV = 'production';
+  try {
+    productionDb = await initDb(path.join(productionDir, 'catalog.db'));
+    const rawHash = await bcrypt.hash('2468', 4);
+    const app = createApp({
+      db: productionDb,
+      familyPinHash: rawHash,
+      sessionSecret: 'production-test-session',
+      trustProxy: 1,
+      uploadDir: path.join(productionDir, 'uploads'),
+      distPath: path.join(productionDir, 'dist'),
+    });
+    productionServer = await new Promise((resolve) => {
+      const instance = app.listen(0, () => resolve(instance));
+    });
+    const productionBaseUrl = `http://127.0.0.1:${productionServer.address().port}`;
+    const unlockResponse = await fetch(`${productionBaseUrl}/api/auth/unlock`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: '2468' }),
+    });
+    assert.equal(unlockResponse.status, 200);
+    const setCookie = unlockResponse.headers.get('set-cookie');
+    assert.ok(setCookie, 'successful production unlock must set a session cookie over HTTP');
+    assert.doesNotMatch(setCookie, /; Secure(?:;|$)/i);
+    const productionCookie = setCookie.split(';')[0];
+    const requestWithSession = (pathname) => fetch(`${productionBaseUrl}${pathname}`, {
+      headers: { Cookie: productionCookie },
+    });
+
+    const meResponse = await requestWithSession('/api/me');
+    assert.deepEqual(await meResponse.json(), { authenticated: true });
+    assert.equal((await requestWithSession('/api/athletes')).status, 200);
+    assert.equal((await requestWithSession('/api/sports')).status, 200);
+
+    const forwardedUnlockResponse = await fetch(`${productionBaseUrl}/api/auth/unlock`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Forwarded-Proto': 'https' },
+      body: JSON.stringify({ pin: '2468' }),
+    });
+    assert.equal(forwardedUnlockResponse.status, 200);
+    assert.match(forwardedUnlockResponse.headers.get('set-cookie') || '', /; Secure(?:;|$)/i);
+  } finally {
+    if (productionServer) {
+      await new Promise((resolve, reject) => productionServer.close((error) => (error ? reject(error) : resolve())));
+    }
+    if (productionDb) await productionDb.close();
+    await fs.rm(productionDir, { recursive: true, force: true });
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
+});
+
 test('link creation persists catalog fields and refreshes through the API', async () => {
   const unlock = await request('/api/auth/unlock', {
     method: 'POST',

@@ -25,6 +25,7 @@ All notable changes to Our Team Memories are documented here.
 - Event and moment hide/show state, edit state, clip ownership, upload cleanup, and local path redaction persist across refresh.
 - TKD fields are rejected for soccer and basketball moments; strict date validation uses the corrected one-backslash regex and Gregorian validation.
 - SEO metadata, favicon, robots, and sitemap no longer use Vite or unrelated placeholder branding; private QA release is explicitly noindex/disallow-all.
+- Production unlock now establishes a session on direct HTTP/LAN access while preserving secure cookies for HTTPS deployments.
 
 ## [0.1.3] - 2026-08-08
 

@@ -43,7 +43,7 @@ Taekwondo is a progressive `tkd.v1` sport pack. Soccer and basketball use game l
 
 ## Family PIN and uploads
 
-The shared PIN is compared against `FAMILY_PIN_HASH`; it is never stored in SQLite. Successful unlock regenerates the session. Lock clears the session server-side and the client clears all privileged data before waiting for the response. Production requires a non-placeholder `SESSION_SECRET` and secure cookies.
+The shared PIN is compared against `FAMILY_PIN_HASH`; it is never stored in SQLite. Successful unlock regenerates the session. Lock clears the session server-side and the client clears all privileged data before waiting for the response. Production requires a non-placeholder `SESSION_SECRET`; session cookies are `Secure` on HTTPS and adapt to direct HTTP/LAN access. Set `TRUST_PROXY=true` only when a controlled reverse proxy terminates TLS.
 
 Uploads use a real file input and remain private behind the authenticated `/uploads` route. With `YOUTUBE_MODE=mock`, the response says `publish_status=mock` and explains that YouTube is not connected. With live credentials absent, the response is `pending`; the UI never claims a successful public upload. Rejected files are removed, MIME is checked server-side, and `MAX_UPLOAD_STORAGE_MB` bounds retained private files.
 
