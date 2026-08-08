@@ -8,4 +8,5 @@ if (!pin) {
 }
 
 const hash = await bcrypt.hash(String(pin), 10);
-console.log(hash);
+const composeSafeHash = hash.split('$').join('$$');
+console.log(`FAMILY_PIN_HASH=${composeSafeHash}`);

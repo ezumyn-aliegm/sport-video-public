@@ -1,6 +1,6 @@
 # Kids Sport Video Tracker
 
-> **Process:** See [docs/PROCESS.md](docs/PROCESS.md). Code ships only via **git + PR + CI**. Version **0.1.0**.
+> **Process:** See [docs/PROCESS.md](docs/PROCESS.md). Code ships only via **git + PR + CI**. Version **0.1.3**.
 
 
 A family-friendly video catalog for kids sports highlights. Parents can paste links or upload clips, tag them by child/sport/date, and hide clips when needed. v1 uses a shared family PIN for quick access.
@@ -13,7 +13,7 @@ A family-friendly video catalog for kids sports highlights. Parents can paste li
    cp .env.example .env
 3. Set a family PIN hash:
    node ./scripts/hash-pin.js 1234
-   (copy output into FAMILY_PIN_HASH in .env)
+   (paste the complete `FAMILY_PIN_HASH=...` output into `.env`; the script escapes dollar signs for Compose and the server normalizes it for local runs)
 4. Run in dev:
    npm run dev
 5. API server (separate terminal):
@@ -26,7 +26,7 @@ API server: http://localhost:3000
 
 1. Build + run:
    docker compose up -d --build
-2. App runs on host port 3013 (http://localhost:3013 or via proxy).
+2. App runs on host port 3015 (http://localhost:3015 or via proxy).
 3. Restart:
    docker compose restart sport-video
 
@@ -45,7 +45,7 @@ This v1 defaults to **mock** upload because YouTube OAuth credentials are not av
 - Set YOUTUBE_MODE=mock
 - Upload stores the file in /uploads and generates a **demo link**:
   https://youtube.com/watch?v=mock_<uuid>
-- UI surfaces “Demo link (YouTube not connected)” badge
+- UI surfaces “Mock upload” and explains that YouTube is not connected
 
 ### Live mode (requires Operator setup)
 
@@ -62,7 +62,9 @@ Notes:
 ## Environment variables
 
 - PORT=3000
+- NODE_ENV=development|production (Docker Compose forces production)
 - SESSION_SECRET=string
+- TRUST_PROXY=false (set true only behind a controlled reverse proxy that terminates TLS)
 - FAMILY_PIN_HASH=bcrypt hash
 - YOUTUBE_MODE=mock|live
 - GOOGLE_CLIENT_ID=
@@ -71,15 +73,20 @@ Notes:
 - YOUTUBE_DEFAULT_PRIVACY=unlisted
 - YOUTUBE_SELF_DECLARED_MADE_FOR_KIDS=true
 - MAX_UPLOAD_MB=500
+- MAX_UPLOAD_STORAGE_MB=2048 (aggregate private-QA upload cap; new uploads are rejected when full)
 - DB_PATH=./data/sport-video.db
+
+### Compose bcrypt hashes
+
+Docker Compose treats dollar signs in `.env` values as interpolation markers. Always use the output of `node ./scripts/hash-pin.js <PIN>` rather than pasting a raw bcrypt hash. The generated assignment uses Compose-safe escaping, and `server/config.js` accepts the same escaped value for local development.
 
 ## Operator deploy notes (app-host)
 
 - Project directory: /opt/docker/sport-video
 - Compose project name: sport-video
-- Host port: 3013 (proxy to 192.0.2.30:3013)
+- Host port: 3015 (proxy to 192.0.2.30:3015)
 - Do not edit /opt/docker/docker-compose.yml
-- Allow UFW: sudo ufw allow 3013/tcp comment 'sport-video'
+- Allow UFW: sudo ufw allow 3015/tcp comment 'sport-video'
 
 ## Seed demo data
 
@@ -93,3 +100,5 @@ On first run, the app auto-seeds:
 - Live YouTube uploads not implemented without OAuth creds.
 - No per-parent accounts or audit trail.
 - No delete UI (hide only).
+- Upload files remain on the mounted storage until an operator removes orphaned files; the aggregate `MAX_UPLOAD_STORAGE_MB` cap prevents unbounded disk growth and rejects new uploads when full.
+- Docker startup rejects the example `SESSION_SECRET` placeholder when `NODE_ENV=production`; set a unique secret before running Compose.
