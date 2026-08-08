@@ -1,95 +1,100 @@
-# Kids Sport Video Tracker
+# Our Team Memories
 
-> **Process:** See [docs/PROCESS.md](docs/PROCESS.md). Code ships only via **git + PR + CI**. Version **0.1.0**.
+> Multi-sport family highlights organized as Family PIN -> Athlete -> Sport -> Event -> Moment -> Clip. Version 0.2.0.
 
+Repository: https://github.com/ezumyn-aliegm/sport-video-public
 
-A family-friendly video catalog for kids sports highlights. Parents can paste links or upload clips, tag them by child/sport/date, and hide clips when needed. v1 uses a shared family PIN for quick access.
+Our Team Memories is a private family archive for games, fights, practices, tournaments, and the small wins parents want to find again. The home screen is an API-backed newest-first timeline: an event is the visual parent, moments stay ordered beneath it, and clips attach either to the event or to one moment.
 
-## Quick start (local)
+## Quick start
 
-1. Install dependencies:
-   npm install
-2. Copy env:
-   cp .env.example .env
-3. Set a family PIN hash:
-   node ./scripts/hash-pin.js 1234
-   (copy output into FAMILY_PIN_HASH in .env)
-4. Run in dev:
-   npm run dev
-5. API server (separate terminal):
-   npm run server
+```bash
+npm install
+cp .env.example .env
+node ./scripts/hash-pin.js 1234
+# Paste the generated FAMILY_PIN_HASH assignment into .env.
+npm run server   # API on http://localhost:3000
+npm run dev      # Vite UI on http://localhost:5173
+```
 
-Default dev UI: http://localhost:5173
-API server: http://localhost:3000
+The Vite UI proxies `/api` and `/uploads` to the local Express server. For the production-shaped path:
 
-## Production (Docker)
+```bash
+docker compose up -d --build
+```
 
-1. Build + run:
-   docker compose up -d --build
-2. App runs on host port 3013 (http://localhost:3013 or via proxy).
-3. Restart:
-   docker compose restart sport-video
+The Compose service listens on host port 3015 and maps to the app's port 3000: http://localhost:3015. Host port 3013 is not used by this project.
 
-## Family PIN model (v1)
+## v0.2 domain and API
 
-- One PIN for the entire family. Fast, low-friction access.
-- Tradeoffs: anyone with the PIN can view/edit; no per-parent audit trail.
-- Rate limit: 5 attempts per 15 minutes per IP.
+The migration keeps the original `children` IDs and flat `videos` rows for compatibility, then adds canonical `athletes`, `events`, `moments`, `clips`, notes, tags, typed joins, and `legacy_video_map`. Legacy rows are backfilled deterministically and the migration is idempotent. Docker's `./data` volume is preserved; migration never deletes the existing SQLite file.
 
-## YouTube upload mode
+Canonical authenticated routes include:
 
-This v1 defaults to **mock** upload because YouTube OAuth credentials are not available on the host. The server uses sqlite3 (async) to avoid native build issues on Node 26 in local dev; production container builds fine.
+- `GET /api/timeline` with athlete, sport, event type, date range, result, tag, and hidden filters.
+- `GET|POST|PATCH /api/events` plus event detail, ordered moments, and event-level clips.
+- `GET|POST|PATCH /api/moments` plus moment-level clips.
+- `GET|PATCH /api/clips` for honest ready, mock, pending, or failed status.
+- `POST /api/capture` for an atomic video-first Event -> Moment -> Clip path.
 
-### Mock mode (default)
+The old `/api/children` and `/api/videos` routes remain compatibility aliases. The browser must call the API for children, sports, timeline, counts, hidden state, filters, create, edit, and hide. Do not add static catalog arrays that can contradict SQLite.
 
-- Set YOUTUBE_MODE=mock
-- Upload stores the file in /uploads and generates a **demo link**:
-  https://youtube.com/watch?v=mock_<uuid>
-- UI surfaces “Demo link (YouTube not connected)” badge
+Taekwondo is a progressive `tkd.v1` sport pack. Soccer and basketball use game language (opponent/team, score, period or half) and do not receive TKD fields. Fresh demo data keeps Emma soccer and Noah basketball and adds Maya's three-fight Mountain West Open tournament. Demo insertion is idempotent and is only automatic for a new empty database or explicit `SEED_DEMO=1`; a non-empty production database is backfilled only.
 
-### Live mode (requires Operator setup)
+## Family PIN and uploads
 
-Required env vars:
-- GOOGLE_CLIENT_ID
-- GOOGLE_CLIENT_SECRET
-- YOUTUBE_REFRESH_TOKEN
+The shared PIN is compared against `FAMILY_PIN_HASH`; it is never stored in SQLite. Successful unlock regenerates the session. Lock clears the session server-side and the client clears all privileged data before waiting for the response. Production requires a non-placeholder `SESSION_SECRET` and secure cookies.
 
-Notes:
-- Service accounts do not work with YouTube uploads.
-- Operator must do a one-time OAuth consent by the YouTube channel owner.
-- Default privacy is unlisted; change YOUTUBE_DEFAULT_PRIVACY if needed.
+Uploads use a real file input and remain private behind the authenticated `/uploads` route. With `YOUTUBE_MODE=mock`, the response says `publish_status=mock` and explains that YouTube is not connected. With live credentials absent, the response is `pending`; the UI never claims a successful public upload. Rejected files are removed, MIME is checked server-side, and `MAX_UPLOAD_STORAGE_MB` bounds retained private files.
 
-## Environment variables
+Compose expands `$` in environment values. Always generate the hash with `node ./scripts/hash-pin.js <PIN>` so bcrypt dollar signs remain Compose-safe; the server normalizes the escaped value for local dotenv runs.
 
-- PORT=3000
-- SESSION_SECRET=string
-- FAMILY_PIN_HASH=bcrypt hash
-- YOUTUBE_MODE=mock|live
-- GOOGLE_CLIENT_ID=
-- GOOGLE_CLIENT_SECRET=
-- YOUTUBE_REFRESH_TOKEN=
-- YOUTUBE_DEFAULT_PRIVACY=unlisted
-- YOUTUBE_SELF_DECLARED_MADE_FOR_KIDS=true
-- MAX_UPLOAD_MB=500
-- DB_PATH=./data/sport-video.db
+## Environment
 
-## Operator deploy notes (app-host)
+See `.env.example` for the complete list. Important values:
 
-- Project directory: /opt/docker/sport-video
-- Compose project name: sport-video
-- Host port: 3013 (proxy to 192.0.2.30:3013)
-- Do not edit /opt/docker/docker-compose.yml
-- Allow UFW: sudo ufw allow 3013/tcp comment 'sport-video'
+- `PORT=3000` inside the container.
+- `SESSION_SECRET` (required and unique in production).
+- `FAMILY_PIN_HASH` (generated, never committed).
+- `YOUTUBE_MODE=mock|live`.
+- `MAX_UPLOAD_MB=500` and `MAX_UPLOAD_STORAGE_MB=2048`.
+- `DB_PATH=./data/sport-video.db`.
+- `SEED_DEMO=1` only when an operator explicitly wants the reserved demo fixture.
 
-## Seed demo data
+## Tests and release gates
 
-On first run, the app auto-seeds:
-- 2 children (Emma, Noah)
-- 4 sports
-- 3 videos (1 hidden, 1 mock upload)
+```bash
+npm run ci
+```
+
+`npm run ci` runs Oxlint, Node API/migration tests, Vitest React interaction tests, and the Vite production build. The suite covers auth, migration/backfill, hierarchy ownership, event and moment fields, sport-pack disclosure, timeline filters, create/edit/hide persistence, upload honesty and cleanup, and API-driven UI fetch paths.
+
+The durable release path is:
+
+1. Start from freshly fetched `origin/main`.
+2. Work on a named branch and commit the change.
+3. Run `npm run ci`, `git diff --check`, and desktop/mobile browser QA.
+4. Open one non-draft PR to `main` with the exact head SHA and evidence.
+5. Wait for GitHub CI and critic review. Do not merge or deploy from a component branch.
+6. Deploy only an approved `main` commit or release tag SHA, never a dirty checkout or arbitrary feature branch.
+
+Private repositories on the free GitHub plan do not provide the full branch-protection ruleset gate needed for a hard server-side required-review policy. The process gate is therefore documented and enforced by PR/critic/CI workflow rather than claimed as a GitHub setting.
+
+## Operator runbook
+
+- **Local QA:** `npm install`, `.env`, `npm run server`, `npm run dev`; use the UI at port 5173 or Compose at port 3015.
+- **Compose:** set a real production `SESSION_SECRET` and generated PIN hash, then `docker compose up -d --build`; inspect `docker compose logs -f sport-video`.
+- **SQLite backup:** stop the service before copying `data/sport-video.db`; retain the backup and verify `PRAGMA integrity_check` before any migration.
+- **Deploy:** build and publish only the exact approved `main` SHA. QA the running URL and record the URL, SHA, and CI run. This release candidate must not be deployed from this task.
+- **Rollback:** restore the pre-migration SQLite backup for a schema rollback. A code rollback may keep the canonical schema only while compatibility routes remain.
+
+## Public HTTPS status
+
+There is no claimed public HTTPS deployment for this private QA release. The production-shaped URL is local/private at port 3015 until an operator provisions a real host, TLS termination, DNS, secrets, and an independent QA run. `robots.txt` is intentionally disallow-all and the document metadata is noindex so the release does not pretend to be publicly hosted.
 
 ## Known limitations
 
-- Live YouTube uploads not implemented without OAuth creds.
-- No per-parent accounts or audit trail.
-- No delete UI (hide only).
+- Shared PIN access has no per-parent audit trail.
+- Live YouTube OAuth publishing is not implemented in this release.
+- The UI exposes reversible hide rather than hard delete.
+- Uploaded files remain on the private mounted volume until an operator removes them after a confirmed database deletion.
