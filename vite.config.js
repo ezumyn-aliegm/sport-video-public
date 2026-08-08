@@ -13,5 +13,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     css: true,
+    exclude: ['**/node_modules/**', '**/.worktrees/**', '**/dist/**'],
   },
 })
