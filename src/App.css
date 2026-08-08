@@ -1,0 +1,48 @@
+.hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-6);
+  align-items: center;
+  margin-bottom: var(--space-6);
+}
+
+.hero h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.hero-art {
+  width: 100%;
+  max-width: 360px;
+  justify-self: end;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+.muted {
+  color: var(--color-ink-muted);
+  margin: 6px 0 0;
+}
+
+.flow-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.flow-card {
+  background: var(--color-cream-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+@media (max-width: 520px) {
+  .hero-art {
+    justify-self: start;
+  }
+}

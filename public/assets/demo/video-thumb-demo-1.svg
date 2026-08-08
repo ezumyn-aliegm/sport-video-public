@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="field" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4A7C23"/>
+      <stop offset="100%" stop-color="#2D5016"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" fill="url(#field)"/>
+  
+  <!-- Field lines -->
+  <line x1="0" y1="140" x2="320" y2="140" stroke="white" stroke-width="2" opacity="0.5"/>
+  <line x1="160" y1="140" x2="160" y2="180" stroke="white" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Player silhouette -->
+  <ellipse cx="120" cy="130" rx="25" ry="12" fill="#1A1A1A" opacity="0.3"/>
+  <path d="M 110 130 L 110 100 L 115 90 L 125 90 L 130 100 L 130 130 Z" fill="#1A1A1A" opacity="0.4"/>
+  <circle cx="120" cy="85" r="10" fill="#1A1A1A" opacity="0.4"/>
+  
+  <!-- Ball -->
+  <circle cx="180" cy="120" r="12" fill="white"/>
+  <polygon points="180,112 186,117 183,125 177,125 174,117" fill="#1A1A1A"/>
+  
+  <!-- Goal -->
+  <rect x="260" y="80" width="50" height="60" fill="none" stroke="white" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Play button -->
+  <circle cx="160" cy="90" r="28" fill="rgba(0,0,0,0.5)"/>
+  <polygon points="150,75 150,105 175,90" fill="white"/>
+  
+  <!-- Duration badge -->
+  <rect x="270" y="150" width="40" height="20" rx="4" fill="rgba(0,0,0,0.75)"/>
+  <text x="290" y="164" text-anchor="middle" font-family="system-ui" font-size="12" fill="white">2:34</text>
+  
+  <!-- Score bug -->
+  <rect x="10" y="10" width="100" height="30" rx="6" fill="rgba(0,0,0,0.6)"/>
+  <text x="60" y="30" text-anchor="middle" font-family="system-ui" font-size="14" font-weight="bold" fill="white">3 - 1</text>
+</svg>

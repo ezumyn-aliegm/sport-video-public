@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <circle cx="100" cy="100" r="95" fill="#F5F0E6"/>
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#E0DCD3" stroke-width="2"/>
+  
+  <!-- Simple child silhouette -->
+  <circle cx="100" cy="75" r="30" fill="#4A90D9" opacity="0.2"/>
+  <circle cx="100" cy="75" r="30" fill="none" stroke="#4A90D9" stroke-width="2"/>
+  
+  <!-- Body -->
+  <path d="M 70 140 Q 100 115 130 140 L 130 160 Q 100 175 70 160 Z" fill="#4A90D9" opacity="0.2"/>
+  <path d="M 70 140 Q 100 115 130 140 L 130 160 Q 100 175 70 160 Z" fill="none" stroke="#4A90D9" stroke-width="2"/>
+  
+  <!-- Sport icon overlay -->
+  <circle cx="140" cy="140" r="18" fill="#2D5016"/>
+  <text x="140" y="145" text-anchor="middle" font-family="system-ui" font-size="16" fill="white">⚽</text>
+</svg>

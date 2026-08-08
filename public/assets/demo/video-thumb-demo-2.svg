@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">
+  <defs>
+    <linearGradient id="court" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="180" fill="url(#court)"/>
+  
+  <!-- Court lines -->
+  <line x1="0" y1="140" x2="320" y2="140" stroke="white" stroke-width="2" opacity="0.4"/>
+  <circle cx="160" cy="140" r="30" fill="none" stroke="white" stroke-width="2" opacity="0.4"/>
+  
+  <!-- Hoop -->
+  <rect x="250" y="50" width="40" height="5" fill="#C53030"/>
+  <line x1="270" y1="55" x2="270" y2="90" stroke="white" stroke-width="2" opacity="0.6"/>
+  
+  <!-- Player -->
+  <ellipse cx="140" cy="125" rx="22" ry="10" fill="#1A1A1A" opacity="0.3"/>
+  <path d="M 132 125 L 132 95 L 138 85 L 148 85 L 152 95 L 152 125 Z" fill="#1A1A1A" opacity="0.4"/>
+  <circle cx="142" cy="80" r="9" fill="#1A1A1A" opacity="0.4"/>
+  
+  <!-- Basketball -->
+  <circle cx="200" cy="100" r="14" fill="#E85D04"/>
+  <path d="M 190 92 Q 200 100 210 92" fill="none" stroke="#1A1A1A" stroke-width="1"/>
+  <path d="M 190 108 Q 200 100 210 108" fill="none" stroke="#1A1A1A" stroke-width="1"/>
+  <line x1="200" y1="86" x2="200" y2="114" stroke="#1A1A1A" stroke-width="1"/>
+  
+  <!-- Play button -->
+  <circle cx="160" cy="90" r="28" fill="rgba(0,0,0,0.5)"/>
+  <polygon points="150,75 150,105 175,90" fill="white"/>
+  
+  <!-- Duration badge -->
+  <rect x="270" y="150" width="40" height="20" rx="4" fill="rgba(0,0,0,0.75)"/>
+  <text x="290" y="164" text-anchor="middle" font-family="system-ui" font-size="12" fill="white">1:47</text>
+  
+  <!-- Score bug -->
+  <rect x="10" y="10" width="100" height="30" rx="6" fill="rgba(0,0,0,0.6)"/>
+  <text x="60" y="30" text-anchor="middle" font-family="system-ui" font-size="14" font-weight="bold" fill="white">24 - 18</text>
+</svg>

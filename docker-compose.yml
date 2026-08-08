@@ -1,0 +1,12 @@
+services:
+  sport-video:
+    build: .
+    container_name: sport-video
+    ports:
+      - "3013:3000"
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+
