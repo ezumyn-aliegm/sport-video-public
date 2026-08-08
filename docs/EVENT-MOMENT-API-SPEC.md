@@ -1,8 +1,8 @@
 # Sport Video v0.2.0 — Event → Moment → Clip domain, SQLite migration, and API contract
 
-Status: implementation-ready specification  
-Scope: multi-sport family timeline; Taekwondo (TKD) is a sport pack, not a separate product  
-Compatibility target: current Express + SQLite app (`children`, `sports`, `videos`, `settings`)  
+Status: implementation-ready specification
+Scope: multi-sport family timeline; Taekwondo (TKD) is a sport pack, not a separate product
+Compatibility target: current Express + SQLite app (`children`, `sports`, `videos`, `settings`)
 Auth target: existing family PIN + `express-session` cookie behavior
 
 ## 0. Decisions at a glance
