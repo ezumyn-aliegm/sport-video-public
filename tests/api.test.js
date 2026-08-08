@@ -230,6 +230,35 @@ test('child creation rejects sports that are not in the catalog', async () => {
   assert.equal(result.body.error, 'Unsupported sport');
 });
 
+test('compatibility child creation populates canonical athlete sport relationships', async () => {
+  const unlock = await request('/api/auth/unlock', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin: '2468' }),
+  });
+  cookie = unlock.headers.get('set-cookie').split(';')[0];
+
+  const created = await json(await request('/api/children', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Avery Soccer',
+      sport: 'Soccer',
+      team: 'QA Comets',
+      color: '#123456',
+    }),
+  }));
+  assert.equal(created.response.status, 201);
+
+  const filtered = await json(await request('/api/athletes?sport_id=soccer'));
+  assert.equal(filtered.response.status, 200);
+  const saved = filtered.body.items.find(({ id }) => id === created.body.id);
+  assert.ok(saved);
+  assert.deepEqual(saved.sports.map(({ id, is_primary, team_name }) => ({ id, is_primary, team_name })), [
+    { id: 'soccer', is_primary: 1, team_name: 'QA Comets' },
+  ]);
+});
+
 test('legacy video compatibility routes remain scoped to the authenticated family', async () => {
   const unlock = await request('/api/auth/unlock', {
     method: 'POST',

@@ -1110,21 +1110,38 @@ export const createApp = (options = {}) => {
   app.post('/api/children', requireAuthCompat, asyncRoute(async (req, res) => {
     const name = trimOrNull(req.body?.name);
     if (!name) return sendCompatError(res, 400, 'Name is required');
-    if (req.body?.sport && !await getDb().get('SELECT 1 FROM sports WHERE lower(label) = lower(?)', req.body.sport)) return sendCompatError(res, 400, 'Unsupported sport');
+    const sportRow = req.body?.sport
+      ? await getDb().get('SELECT id, label FROM sports WHERE lower(label) = lower(?)', req.body.sport)
+      : null;
+    if (req.body?.sport && !sportRow) return sendCompatError(res, 400, 'Unsupported sport');
     const id = `ath_${randomUUID()}`;
     const now = nowIso();
-    await getDb().run(
-      `INSERT INTO athletes (id, family_id, name, sport, team, color, archived, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
-      id,
-      FAMILY_ID,
-      name,
-      trimOrNull(req.body?.sport),
-      trimOrNull(req.body?.team),
-      trimOrNull(req.body?.color),
-      now,
-      now
-    );
+    const team = trimOrNull(req.body?.team);
+    await withTransaction(getDb(), async () => {
+      await getDb().run(
+        `INSERT INTO athletes (id, family_id, name, sport, team, color, archived, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+        id,
+        FAMILY_ID,
+        name,
+        trimOrNull(req.body?.sport),
+        team,
+        trimOrNull(req.body?.color),
+        now,
+        now
+      );
+      if (sportRow) {
+        await getDb().run(
+          `INSERT INTO athlete_sports (athlete_id, sport_id, is_primary, team_name, created_at, updated_at)
+           VALUES (?, ?, 1, ?, ?, ?)`,
+          id,
+          sportRow.id,
+          team,
+          now,
+          now
+        );
+      }
+    });
     res.status(201).json(await getDb().get('SELECT id, name, sport, team, color, archived, created_at, updated_at FROM athletes WHERE id = ?', id));
   }));
 
