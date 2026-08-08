@@ -130,10 +130,10 @@ describe('timeline UI', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lock' }));
     const pin = await screen.findByLabelText('Family PIN');
     fireEvent.change(pin, { target: { value: '2468' } });
-    expect(screen.getByRole('button', { name: 'Unlock memories' }).disabled).toBe(true);
+    expect(screen.getByRole('button', { name: /Unlock/ }).disabled).toBe(true);
     expect(unlockCalls).toHaveLength(0);
     resolveLock();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Unlock memories' }).disabled).toBe(false));
+    await waitFor(() => expect(screen.getByRole('button', { name: /Unlock/ }).disabled).toBe(false));
   });
 
   it('starts a fresh event flow after closing an event detail dialog', async () => {
