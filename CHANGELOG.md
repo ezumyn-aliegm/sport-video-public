@@ -2,6 +2,11 @@
 
 All notable changes to Our Team Memories are documented here.
 
+## [0.2.1] - 2026-08-08
+
+### Fixed
+- Primary action orange (`--orange`) darkened from `#e85d04` to `#c2410c` so white button labels meet WCAG AA contrast (5.18:1, was 3.50:1). Hover uses `--orange-dark` `#9a3412` (7.31:1). Bright brand spark retained as `--orange-bright` for non-text marks (logo heart, decorative SVGs).
+
 ## [0.2.0] - 2026-08-08
 
 ### Added
