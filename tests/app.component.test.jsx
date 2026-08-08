@@ -130,10 +130,59 @@ describe('timeline UI', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Lock' }));
     const pin = await screen.findByLabelText('Family PIN');
     fireEvent.change(pin, { target: { value: '2468' } });
-    expect(screen.getByRole('button', { name: /Unlock/ }).disabled).toBe(true);
+    expect(screen.getByRole('button', { name: 'Unlocking...' }).disabled).toBe(true);
     expect(unlockCalls).toHaveLength(0);
     resolveLock();
     await waitFor(() => expect(screen.getByRole('button', { name: /Unlock/ }).disabled).toBe(false));
+  });
+
+  it('submits the event-first form and shows the saved event after refreshing the timeline', async () => {
+    const calls = [];
+    const createdEvent = {
+      ...event,
+      id: 'evt_spring_opener',
+      name: 'Spring opener',
+      type: 'game',
+      sport: { id: 'soccer', label: 'Soccer' },
+      start_date: '2026-08-08',
+      end_date: '2026-08-08',
+      participants: [{ id: 'ath_maya', name: 'Maya' }],
+      tags: ['Family'],
+    };
+    let timelineRequestCount = 0;
+    const fetchMock = vi.fn(async (input, options = {}) => {
+      const pathname = String(input);
+      calls.push({ pathname, options });
+      if (pathname === '/api/me') return responseFor({ authenticated: true });
+      if (pathname === '/api/athletes') return responseFor({ items: [{ id: 'ath_maya', name: 'Maya', sports: [] }] });
+      if (pathname === '/api/sports') return responseFor([{ id: 'soccer', label: 'Soccer' }]);
+      if (pathname.startsWith('/api/timeline')) {
+        timelineRequestCount += 1;
+        return responseFor(timelineRequestCount === 1 ? { items: [] } : { items: [{ event: createdEvent, event_clip_count: 0, moments: [] }] });
+      }
+      if (pathname === '/api/events' && options.method === 'POST') return responseFor(createdEvent, 201);
+      if (pathname === '/api/events/evt_spring_opener?include_hidden=true') return responseFor({ ...createdEvent, event_clips: [], moments: [], notes: [], tags: createdEvent.tags });
+      throw new Error(`Unhandled request: ${options.method || 'GET'} ${pathname}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<App />);
+    await waitFor(() => expect(screen.getAllByRole('button', { name: 'Add a memory' }).length).toBeGreaterThan(0));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add a memory' })[0]);
+    const eventName = await screen.findByLabelText('Event name');
+    await waitFor(() => expect(document.activeElement).toBe(eventName));
+    fireEvent.change(eventName, { target: { value: 'Spring opener' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save event' }));
+
+    await waitFor(() => expect(calls.some(({ pathname, options }) => pathname === '/api/events' && options.method === 'POST')).toBe(true));
+    const createCall = calls.find(({ pathname, options }) => pathname === '/api/events' && options.method === 'POST');
+    expect(JSON.parse(createCall.options.body)).toMatchObject({ name: 'Spring opener', sport_id: 'soccer' });
+    await waitFor(() => {
+      expect(timelineRequestCount).toBeGreaterThan(1);
+      expect(document.querySelector('.timeline-list')?.textContent).toContain('Spring opener');
+    });
+    expect((await screen.findAllByRole('heading', { name: 'Spring opener' })).length).toBeGreaterThan(0);
+    expect(screen.getByRole('dialog').querySelector('.dialog-scroll')).toBeTruthy();
   });
 
   it('starts a fresh event flow after closing an event detail dialog', async () => {

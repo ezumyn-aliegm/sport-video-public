@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { cloneElement, isValidElement, useCallback, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './App.css';
 
 const fallbackSports = [
@@ -83,6 +84,10 @@ const scoreLabel = (moment) => {
 const activeFilterCount = (filters) => Object.values(filters).filter(Boolean).length;
 
 function Dialog({ title, description, onClose, children, dialogRef }) {
+  const [footerNode, setFooterNode] = useState(null);
+  const supportsFooter = isValidElement(children) && typeof children.type === 'function';
+  const dialogChild = supportsFooter && footerNode ? cloneElement(children, { dialogFooterNode: footerNode }) : children;
+
   return (
     <div className="dialog-backdrop" role="presentation" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
@@ -93,17 +98,19 @@ function Dialog({ title, description, onClose, children, dialogRef }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
+        aria-describedby={description ? 'dialog-description' : undefined}
         tabIndex="-1"
       >
         <div className="dialog-head">
           <div>
             <p className="eyebrow">Family space</p>
             <h2 id="dialog-title">{title}</h2>
-            {description && <p className="muted">{description}</p>}
+            {description && <p className="muted" id="dialog-description">{description}</p>}
           </div>
           <button className="icon-btn" type="button" onClick={onClose} aria-label="Close dialog">×</button>
         </div>
-        {children}
+        <div className="dialog-scroll">{dialogChild}</div>
+        {supportsFooter && <div className="dialog-footer" ref={setFooterNode} />}
       </section>
     </div>
   );
@@ -179,7 +186,8 @@ function PinScreen({ pin, setPin, busy, error, onSubmit }) {
   );
 }
 
-function AddMemoryForm({ mode, athletes, sports, selectedEvent, selectedMoment, onSaved, onCancel }) {
+function AddMemoryForm({ mode, athletes, sports, selectedEvent, selectedMoment, onSaved, onCancel, dialogFooterNode }) {
+  const formId = useId();
   const [sourceType, setSourceType] = useState('link');
   const [form, setForm] = useState({
     name: '',
@@ -304,25 +312,27 @@ function AddMemoryForm({ mode, athletes, sports, selectedEvent, selectedMoment, 
   };
 
   return (
-    <form className="form-grid" onSubmit={submit}>
-      {!selectedEvent && !isClip && <label className="form-field full-width"><span>Event name</span><input className="input" value={form.name} onChange={update('name')} placeholder="e.g. Mountain West Open" required /></label>}
-      {isClip && !selectedEvent && <label className="form-field full-width"><span>Event name</span><input className="input" value={form.name} onChange={update('name')} placeholder="Start with the event" required /></label>}
-      {!selectedEvent && <div className="form-grid form-grid-two"><label className="form-field"><span>Sport</span><select className="input" value={form.sport_id} onChange={update('sport_id')}>{sports.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><label className="form-field"><span>Athlete</span><select className="input" value={form.athlete_id} onChange={update('athlete_id')}><option value="">Choose later</option>{athletes.map((athlete) => <option key={athlete.id} value={athlete.id}>{athlete.name}</option>)}</select></label></div>}
-      {!selectedEvent && !isClip && <div className="form-grid form-grid-two"><label className="form-field"><span>Event type</span><select className="input" value={form.type} onChange={update('type')}><option value="game">Game</option><option value="tournament">Tournament</option><option value="practice">Practice</option><option value="test">Test</option><option value="camp">Camp or seminar</option></select></label><label className="form-field"><span>Start date</span><input className="input" type="date" value={form.start_date} onChange={update('start_date')} required /></label></div>}
-      {!selectedEvent && !isClip && <label className="form-field"><span>End date</span><input className="input" type="date" value={form.end_date} onChange={update('end_date')} required /></label>}
-      {(isMoment || isClip) && <label className="form-field full-width"><span>{isMoment ? 'Moment title' : 'Clip title'}</span><input className="input" value={form.title} onChange={update('title')} placeholder={isMoment ? 'e.g. Semi-final - Fight 2' : 'e.g. Full game replay'} required /></label>}
-      {isClip && <div className="source-switcher"><button className={`secondary-btn ${sourceType === 'link' ? 'active' : ''}`} type="button" onClick={() => { setSourceType('link'); setFile(null); }}>Paste a link</button><button className={`secondary-btn ${sourceType === 'upload' ? 'active' : ''}`} type="button" onClick={() => setSourceType('upload')}>Upload from phone</button></div>}
-      {isClip && sourceType === 'link' && <label className="form-field full-width"><span>Video link</span><input className="input" type="url" value={form.external_url} onChange={update('external_url')} placeholder="https://..." required /></label>}
-      {isClip && sourceType === 'upload' && <label className="upload-box form-field full-width"><span>Choose a video file</span><input className="input file-visible" type="file" accept="video/*" aria-label="Choose a video file" onChange={(event) => setFile(event.target.files?.[0] || null)} required /><small>{file ? `${file.name} selected` : 'MP4, MOV or WebM. The saved item will show mock or pending.'}</small></label>}
-      {isMoment && <label className="form-field"><span>Date</span><input className="input" type="date" value={form.occurred_date} onChange={update('occurred_date')} required /></label>}
-      {isMoment && <div className="form-grid form-grid-two"><label className="form-field"><span>Result</span><select className="input" value={form.result} onChange={update('result')}><option value="unknown">Not set</option><option value="win">Won</option><option value="loss">Lost</option><option value="draw">Draw</option><option value="dq">DQ</option></select></label><label className="form-field"><span>{isTkd ? 'Opponent' : 'Opponent or team'}</span><input className="input" value={form.opponent_name} onChange={update('opponent_name')} placeholder="Name" /></label></div>}
-      {isMoment && <div className="form-grid form-grid-two"><label className="form-field"><span>Score for</span><input className="input" inputMode="numeric" value={form.score_for} onChange={update('score_for')} /></label><label className="form-field"><span>Score against</span><input className="input" inputMode="numeric" value={form.score_against} onChange={update('score_against')} /></label></div>}
-      {isMoment && !isTkd && <label className="form-field"><span>Period or half</span><input className="input" value={form.period_label} onChange={update('period_label')} placeholder="2nd half or Q3" /></label>}
-      {isMoment && isTkd && <fieldset className="sport-pack"><legend>Taekwondo details</legend><div className="form-grid form-grid-two"><label className="form-field"><span>Division</span><input className="input" value={form.division} onChange={update('division')} /></label><label className="form-field"><span>Weight class</span><input className="input" value={form.weight_class} onChange={update('weight_class')} /></label><label className="form-field"><span>Age group</span><input className="input" value={form.age_group} onChange={update('age_group')} /></label><label className="form-field"><span>Belt division</span><input className="input" value={form.belt_division} onChange={update('belt_division')} /></label><label className="form-field"><span>Opponent club</span><input className="input" value={form.opponent_club} onChange={update('opponent_club')} /></label><label className="form-field"><span>Format</span><select className="input" value={form.tkd_format} onChange={update('tkd_format')}><option value="sparring">Sparring</option><option value="poomsae">Poomsae</option></select></label></div></fieldset>}
-      {(isMoment || isClip || !selectedEvent) && <><label className="form-field full-width"><span>Notes</span><textarea className="input textarea" value={form.notes} onChange={update('notes')} placeholder="Add the part you want to remember" /></label><label className="form-field full-width"><span>Tags</span><input className="input" value={form.tags} onChange={update('tags')} placeholder="Tournament, highlight" /></label></>}
-      <Status status={status} />
-      <div className="dialog-actions"><button className="secondary-btn" type="button" onClick={onCancel}>Not now</button><button className="primary-btn" type="submit" disabled={busy}>{busy ? 'Saving...' : isMoment ? 'Save moment' : isClip ? 'Save clip' : 'Save event'}</button></div>
-    </form>
+    <>
+      <form id={formId} className="form-grid" onSubmit={submit}>
+        {!selectedEvent && !isClip && <label className="form-field full-width"><span>Event name</span><input className="input" data-dialog-initial-focus="true" value={form.name} onChange={update('name')} placeholder="e.g. Mountain West Open" required /></label>}
+        {isClip && !selectedEvent && <label className="form-field full-width"><span>Event name</span><input className="input" data-dialog-initial-focus="true" value={form.name} onChange={update('name')} placeholder="Start with the event" required /></label>}
+        {!selectedEvent && <div className="form-grid form-grid-two"><label className="form-field"><span>Sport</span><select className="input" value={form.sport_id} onChange={update('sport_id')}>{sports.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><label className="form-field"><span>Athlete</span><select className="input" value={form.athlete_id} onChange={update('athlete_id')}><option value="">Choose later</option>{athletes.map((athlete) => <option key={athlete.id} value={athlete.id}>{athlete.name}</option>)}</select></label></div>}
+        {!selectedEvent && !isClip && <div className="form-grid form-grid-two"><label className="form-field"><span>Event type</span><select className="input" value={form.type} onChange={update('type')}><option value="game">Game</option><option value="tournament">Tournament</option><option value="practice">Practice</option><option value="test">Test</option><option value="camp">Camp or seminar</option></select></label><label className="form-field"><span>Start date</span><input className="input" type="date" value={form.start_date} onChange={update('start_date')} required /></label></div>}
+        {!selectedEvent && !isClip && <label className="form-field"><span>End date</span><input className="input" type="date" value={form.end_date} onChange={update('end_date')} required /></label>}
+        {(isMoment || isClip) && <label className="form-field full-width"><span>{isMoment ? 'Moment title' : 'Clip title'}</span><input className="input" data-dialog-initial-focus={isMoment ? 'true' : undefined} value={form.title} onChange={update('title')} placeholder={isMoment ? 'e.g. Semi-final - Fight 2' : 'e.g. Full game replay'} required /></label>}
+        {isClip && <div className="source-switcher"><button className={`secondary-btn ${sourceType === 'link' ? 'active' : ''}`} type="button" onClick={() => { setSourceType('link'); setFile(null); }}>Paste a link</button><button className={`secondary-btn ${sourceType === 'upload' ? 'active' : ''}`} type="button" onClick={() => setSourceType('upload')}>Upload from phone</button></div>}
+        {isClip && sourceType === 'link' && <label className="form-field full-width"><span>Video link</span><input className="input" type="url" value={form.external_url} onChange={update('external_url')} placeholder="https://..." required /></label>}
+        {isClip && sourceType === 'upload' && <label className="upload-box form-field full-width"><span>Choose a video file</span><input className="input file-visible" type="file" accept="video/*" aria-label="Choose a video file" onChange={(event) => setFile(event.target.files?.[0] || null)} required /><small>{file ? `${file.name} selected` : 'MP4, MOV or WebM. The saved item will show mock or pending.'}</small></label>}
+        {isMoment && <label className="form-field"><span>Date</span><input className="input" type="date" value={form.occurred_date} onChange={update('occurred_date')} required /></label>}
+        {isMoment && <div className="form-grid form-grid-two"><label className="form-field"><span>Result</span><select className="input" value={form.result} onChange={update('result')}><option value="unknown">Not set</option><option value="win">Won</option><option value="loss">Lost</option><option value="draw">Draw</option><option value="dq">DQ</option></select></label><label className="form-field"><span>{isTkd ? 'Opponent' : 'Opponent or team'}</span><input className="input" value={form.opponent_name} onChange={update('opponent_name')} placeholder="Name" /></label></div>}
+        {isMoment && <div className="form-grid form-grid-two"><label className="form-field"><span>Score for</span><input className="input" inputMode="numeric" value={form.score_for} onChange={update('score_for')} /></label><label className="form-field"><span>Score against</span><input className="input" inputMode="numeric" value={form.score_against} onChange={update('score_against')} /></label></div>}
+        {isMoment && !isTkd && <label className="form-field"><span>Period or half</span><input className="input" value={form.period_label} onChange={update('period_label')} placeholder="2nd half or Q3" /></label>}
+        {isMoment && isTkd && <fieldset className="sport-pack"><legend>Taekwondo details</legend><div className="form-grid form-grid-two"><label className="form-field"><span>Division</span><input className="input" value={form.division} onChange={update('division')} /></label><label className="form-field"><span>Weight class</span><input className="input" value={form.weight_class} onChange={update('weight_class')} /></label><label className="form-field"><span>Age group</span><input className="input" value={form.age_group} onChange={update('age_group')} /></label><label className="form-field"><span>Belt division</span><input className="input" value={form.belt_division} onChange={update('belt_division')} /></label><label className="form-field"><span>Opponent club</span><input className="input" value={form.opponent_club} onChange={update('opponent_club')} /></label><label className="form-field"><span>Format</span><select className="input" value={form.tkd_format} onChange={update('tkd_format')}><option value="sparring">Sparring</option><option value="poomsae">Poomsae</option></select></label></div></fieldset>}
+        {(isMoment || isClip || !selectedEvent) && <><label className="form-field full-width"><span>Notes</span><textarea className="input textarea" value={form.notes} onChange={update('notes')} placeholder="Add the part you want to remember" /></label><label className="form-field full-width"><span>Tags</span><input className="input" value={form.tags} onChange={update('tags')} placeholder="Tournament, highlight" /></label></>}
+        <Status status={status} />
+      </form>
+      {dialogFooterNode && createPortal(<div className="dialog-actions"><button className="secondary-btn" type="button" onClick={onCancel}>Not now</button><button className="primary-btn" type="submit" form={formId} disabled={busy}>{busy ? 'Saving...' : isMoment ? 'Save moment' : isClip ? 'Save clip' : 'Save event'}</button></div>, dialogFooterNode)}
+    </>
   );
 }
 
@@ -530,7 +540,8 @@ export default function App() {
     };
     document.addEventListener('keydown', onKeyDown);
     window.setTimeout(() => {
-      const first = focusable()[0];
+      const preferred = dialogRef.current?.querySelector('[data-dialog-initial-focus="true"]');
+      const first = preferred && !preferred.disabled ? preferred : focusable()[0];
       if (first) first.focus();
       else dialogRef.current?.focus();
     }, 0);
@@ -656,7 +667,7 @@ export default function App() {
         <section className="timeline-list" aria-live="polite">{timeline.map((item) => <div className="timeline-group" key={item.event.id}><div className="date-rail"><strong>{formatDate(item.event.start_date, { weekday: 'long' })}</strong><span>{item.event.start_date === today() ? 'Today' : 'Saved memory'}</span></div><EventCard item={item} onOpenEvent={openEvent} onOpenMoment={openMoment} /></div>)}</section>
       </main>
       {dialog === 'filters' && <Dialog title="Find a memory" description="Filters stay simple and can be cleared anytime." onClose={closeDialog} dialogRef={dialogRef}><form className="form-grid" onSubmit={(event) => { event.preventDefault(); setDialog(null); loadTimeline(); }}><label className="form-field"><span>Child</span><select className="input" value={filters.athlete_id} onChange={(event) => updateFilter('athlete_id', event.target.value)}><option value="">All children</option>{athletes.map((athlete) => <option key={athlete.id} value={athlete.id}>{athlete.name}</option>)}</select></label><label className="form-field"><span>Sport</span><select className="input" value={filters.sport_id} onChange={(event) => updateFilter('sport_id', event.target.value)}><option value="">All sports</option>{availableSports.map((sport) => <option key={sport.id} value={sport.id}>{sport.label}</option>)}</select></label><label className="form-field"><span>Event type</span><select className="input" value={filters.event_type} onChange={(event) => updateFilter('event_type', event.target.value)}><option value="">Any event type</option><option value="game">Game</option><option value="tournament">Tournament</option><option value="practice">Practice</option><option value="test">Test</option></select></label><label className="form-field"><span>Result</span><select className="input" value={filters.result} onChange={(event) => updateFilter('result', event.target.value)}><option value="">Any result</option><option value="win">Won</option><option value="loss">Lost</option><option value="draw">Draw</option></select></label><label className="form-field"><span>Tag</span><input className="input" value={filters.tag} onChange={(event) => updateFilter('tag', event.target.value)} placeholder="medal or highlight" /></label><div className="form-grid form-grid-two"><label className="form-field"><span>From</span><input className="input" type="date" value={filters.from} onChange={(event) => updateFilter('from', event.target.value)} /></label><label className="form-field"><span>To</span><input className="input" type="date" value={filters.to} onChange={(event) => updateFilter('to', event.target.value)} /></label></div><label className="check-row"><input type="checkbox" checked={showHidden} onChange={(event) => setShowHidden(event.target.checked)} /> Show hidden family memories</label><div className="dialog-actions"><button className="secondary-btn" type="button" onClick={clearFilters}>Clear</button><button className="primary-btn" type="submit">Show memories</button></div></form></Dialog>}
-      {addDialog && <Dialog title={dialogTitle} description="Start with the part you have. Add the rest when it feels easy." onClose={closeDialog} dialogRef={dialogRef}><AddMemoryForm mode={dialog.replace('add-', '')} athletes={athletes} sports={availableSports} selectedEvent={selectedEvent} selectedMoment={selectedMoment} onSaved={refreshAfterSave} onCancel={closeDialog} /></Dialog>}
+      {addDialog && <Dialog title={dialogTitle} description={dialog === 'add-event' ? 'Start with the part you have. Add the rest when it feels easy. Scroll for more fields.' : 'Start with the part you have. Add the rest when it feels easy.'} onClose={closeDialog} dialogRef={dialogRef}><AddMemoryForm mode={dialog.replace('add-', '')} athletes={athletes} sports={availableSports} selectedEvent={selectedEvent} selectedMoment={selectedMoment} onSaved={refreshAfterSave} onCancel={closeDialog} /></Dialog>}
       {dialog === 'edit-event' && selectedEvent && <Dialog title="Edit event" description="Keep the family story accurate." onClose={closeDialog} dialogRef={dialogRef}><EditEventForm event={selectedEvent} onSaved={refreshAfterSave} onCancel={() => setDialog('event')} /></Dialog>}
       {dialog === 'edit-moment' && selectedMoment && <Dialog title="Edit moment" description="Update the details without losing the clip." onClose={closeDialog} dialogRef={dialogRef}><EditMomentForm moment={selectedMoment} onSaved={refreshAfterSave} onCancel={() => setDialog('moment')} /></Dialog>}
       {dialog === 'event' && selectedEvent && <Dialog title={selectedEvent.name} description={`${selectedEvent.type} · ${selectedEvent.sport.label}`} onClose={closeDialog} dialogRef={dialogRef}><div className="detail-hero"><img src={eventImage(selectedEvent)} alt="" /><div><p className="eyebrow">{selectedEvent.participants.map(({ name }) => name).join(' + ') || 'Family event'}</p><h3>{resultLabel(selectedEvent.result, selectedEvent)}</h3><p>{formatDate(selectedEvent.start_date)}{selectedEvent.end_date !== selectedEvent.start_date ? ` - ${formatDate(selectedEvent.end_date)}` : ''} · {selectedEvent.venue?.name || 'Venue not set'}</p></div></div><div className="detail-section"><div className="section-heading"><div><p className="eyebrow">Event clips</p><h3>{selectedEvent.event_clips?.length || 0} clips across the day</h3></div><button className="secondary-btn" type="button" onClick={() => setDialog('add-clip')}>Add clip</button></div><div className="clip-strip">{(selectedEvent.event_clips || []).map((clip) => <div className="clip-thumb" key={clip.id}><img src={clip.thumbnail_url || eventImage(selectedEvent)} alt="" /><span>{clip.publish_status === 'mock' ? 'Mock upload' : clip.publish_status}</span></div>)}</div></div><div className="detail-section"><div className="section-heading"><div><p className="eyebrow">Moments in order</p><h3>{selectedEvent.moments.length} moments</h3></div><button className="secondary-btn" type="button" onClick={() => setDialog('add-moment')}>Add a moment</button></div><div className="detail-moments">{selectedEvent.moments.map((moment) => <MomentRow key={moment.id} event={selectedEvent} moment={moment} onOpen={openMoment} />)}</div></div><div className="tag-row">{selectedEvent.tags.map((tag) => <span className="tag" key={tag}>{tag}</span>)}</div>{selectedEvent.notes.map((note) => <p className="parent-note" key={note.id}>{note.body}</p>)}<div className="dialog-actions"><button className="secondary-btn" type="button" onClick={() => setDialog('edit-event')}>Edit event</button><button className="secondary-btn" type="button" onClick={toggleEventHidden}>{selectedEvent.hidden ? 'Show to family' : 'Hide from family'}</button><button className="primary-btn" type="button" onClick={() => setDialog('add-moment')}>Save another moment</button></div></Dialog>}
