@@ -107,10 +107,12 @@ test('auth gates the catalog and lock destroys the session', async () => {
 
 test('production HTTP unlock establishes a session for direct LAN access', async () => {
   const previousNodeEnv = process.env.NODE_ENV;
+  const previousTrustProxy = process.env.TRUST_PROXY;
   const productionDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sport-video-production-auth-'));
   let productionDb;
   let productionServer;
   process.env.NODE_ENV = 'production';
+  process.env.TRUST_PROXY = '127.0.0.1/32';
   try {
     productionDb = await initDb(path.join(productionDir, 'catalog.db'));
     const rawHash = await bcrypt.hash('2468', 4);
@@ -118,10 +120,10 @@ test('production HTTP unlock establishes a session for direct LAN access', async
       db: productionDb,
       familyPinHash: rawHash,
       sessionSecret: 'production-test-session',
-      trustProxy: 1,
       uploadDir: path.join(productionDir, 'uploads'),
       distPath: path.join(productionDir, 'dist'),
     });
+    assert.equal(app.get('trust proxy'), '127.0.0.1/32');
     productionServer = await new Promise((resolve) => {
       const instance = app.listen(0, () => resolve(instance));
     });
@@ -158,6 +160,47 @@ test('production HTTP unlock establishes a session for direct LAN access', async
     }
     if (productionDb) await productionDb.close();
     await fs.rm(productionDir, { recursive: true, force: true });
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+    if (previousTrustProxy === undefined) delete process.env.TRUST_PROXY;
+    else process.env.TRUST_PROXY = previousTrustProxy;
+  }
+});
+
+test('direct clients cannot forge a trusted HTTPS forwarded header', async () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  const tempTrustProxyDir = await fs.mkdtemp(path.join(os.tmpdir(), 'sport-video-trust-proxy-'));
+  let trustProxyServer;
+  process.env.NODE_ENV = 'production';
+  try {
+    const app = createApp({
+      familyPinHash: await bcrypt.hash('2468', 4),
+      sessionSecret: 'trust-proxy-test-session',
+      trustProxy: '192.0.2.1/32',
+      uploadDir: path.join(tempTrustProxyDir, 'uploads'),
+      distPath: path.join(tempTrustProxyDir, 'dist'),
+    });
+    trustProxyServer = await new Promise((resolve) => {
+      const instance = app.listen(0, () => resolve(instance));
+    });
+    const trustProxyBaseUrl = `http://127.0.0.1:${trustProxyServer.address().port}`;
+    const unlockResponse = await fetch(`${trustProxyBaseUrl}/api/auth/unlock`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Forwarded-Proto': 'https' },
+      body: JSON.stringify({ pin: '2468' }),
+    });
+    assert.equal(unlockResponse.status, 200);
+    const setCookie = unlockResponse.headers.get('set-cookie');
+    assert.ok(setCookie, 'direct HTTP unlock must still set a session cookie');
+    assert.doesNotMatch(setCookie, /; Secure(?:;|$)/i);
+    const sessionCookie = setCookie.split(';')[0];
+    const meResponse = await fetch(`${trustProxyBaseUrl}/api/me`, { headers: { Cookie: sessionCookie } });
+    assert.deepEqual(await meResponse.json(), { authenticated: true });
+  } finally {
+    if (trustProxyServer) {
+      await new Promise((resolve, reject) => trustProxyServer.close((error) => (error ? reject(error) : resolve())));
+    }
+    await fs.rm(tempTrustProxyDir, { recursive: true, force: true });
     if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
     else process.env.NODE_ENV = previousNodeEnv;
   }

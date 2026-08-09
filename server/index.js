@@ -20,7 +20,7 @@ import {
   toTagArray,
   buildVideoRow,
 } from './db.js';
-import { isBcryptHash, normalizeFamilyPinHash } from './config.js';
+import { isBcryptHash, normalizeFamilyPinHash, normalizeTrustProxy } from './config.js';
 
 dotenv.config();
 
@@ -946,7 +946,7 @@ export const createApp = (options = {}) => {
   const youtubeMode = options.youtubeMode ?? process.env.YOUTUBE_MODE ?? 'mock';
   const uploadDir = path.resolve(options.uploadDir ?? DEFAULT_UPLOAD_DIR);
   const distPath = path.resolve(options.distPath ?? DEFAULT_DIST_PATH);
-  const trustProxy = options.trustProxy ?? ['1', 'true'].includes(String(process.env.TRUST_PROXY).toLowerCase());
+  const trustProxy = normalizeTrustProxy(options.trustProxy ?? process.env.TRUST_PROXY);
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
   const upload = multer({ dest: uploadDir, limits: { fileSize: maxUploadMb * 1024 * 1024 } });
   const getDb = () => {

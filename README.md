@@ -23,7 +23,7 @@ The Vite UI proxies `/api` and `/uploads` to the local Express server. For the p
 docker compose up -d --build
 ```
 
-The Compose service listens on host port 3015 and maps to the app's port 3000: http://localhost:3015. Host port 3013 is not used by this project.
+The Compose service listens on host port 3015 and maps to the app's port 3000: http://localhost:3015. Host port 3013 is not used by this project. For the non-production host fronted by the controlled Nginx Proxy Manager TLS proxy, use the QA-only override documented in [`docs/QA-DEPLOYMENT.md`](docs/QA-DEPLOYMENT.md) so public HTTPS cookies are Secure while direct LAN HTTP remains usable.
 
 ## v0.2 domain and API
 
@@ -43,7 +43,7 @@ Taekwondo is a progressive `tkd.v1` sport pack. Soccer and basketball use game l
 
 ## Family PIN and uploads
 
-The shared PIN is compared against `FAMILY_PIN_HASH`; it is never stored in SQLite. Successful unlock regenerates the session. Lock clears the session server-side and the client clears all privileged data before waiting for the response. Production requires a non-placeholder `SESSION_SECRET`; session cookies are `Secure` on HTTPS and adapt to direct HTTP/LAN access. Set `TRUST_PROXY=true` only when a controlled reverse proxy terminates TLS.
+The shared PIN is compared against `FAMILY_PIN_HASH`; it is never stored in SQLite. Successful unlock regenerates the session. Lock clears the session server-side and the client clears all privileged data before waiting for the response. Production requires a non-placeholder `SESSION_SECRET`; session cookies are `Secure` on HTTPS and adapt to direct HTTP/LAN access. Set `TRUST_PROXY` to the exact reverse-proxy IPv4 address (or `/32` CIDR) only when a controlled proxy terminates TLS.
 
 Uploads use a real file input and remain private behind the authenticated `/uploads` route. With `YOUTUBE_MODE=mock`, the response says `publish_status=mock` and explains that YouTube is not connected. With live credentials absent, the response is `pending`; the UI never claims a successful public upload. Rejected files are removed, MIME is checked server-side, and `MAX_UPLOAD_STORAGE_MB` bounds retained private files.
 

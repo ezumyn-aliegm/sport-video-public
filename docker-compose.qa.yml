@@ -1,0 +1,9 @@
+# Non-production QA override for the host with a controlled TLS reverse proxy.
+# Keep this file out of production deployments.
+services:
+  sport-video:
+    environment:
+      NODE_ENV: production
+      # Docker NAT presents Nginx Proxy Manager's forwarded requests as the app bridge gateway.
+      # Direct LAN requests are outside this exact address and keep a non-Secure cookie.
+      TRUST_PROXY: "192.0.2.1/32"

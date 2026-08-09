@@ -544,7 +544,7 @@ Existing compatibility endpoints may retain the current `{ "error": "..." }` str
 | `GET /api/me` | No | Return `{ "authenticated": true|false }`. |
 | `GET /api/settings` | Yes | Preserve `youtube_mode` and `max_upload_mb`. |
 
-Cookies remain `httpOnly` and `sameSite=lax`; production uses Secure cookies for HTTPS (including a controlled proxy when `TRUST_PROXY=true`) and non-Secure cookies only for direct HTTP/LAN access. Direct HTTP has no transport confidentiality. Credentials remain enabled for the current dev CORS origins.
+Cookies remain `httpOnly` and `sameSite=lax`; production uses Secure cookies for HTTPS (including a controlled proxy when `TRUST_PROXY` is set to that proxy's exact IPv4 address or `/32` CIDR) and non-Secure cookies only for direct HTTP/LAN access. Direct HTTP has no transport confidentiality. Credentials remain enabled for the current dev CORS origins.
 
 ### 5.4 Reference and athlete endpoints
 

@@ -6,6 +6,7 @@ All notable changes to Our Team Memories are documented here.
 
 ### Fixed
 - Athlete timeline filters now use an accessible pressed-button group instead of orphaned Radix tabs whose `aria-controls` targets were not present in the DOM.
+- QA deployments behind the controlled Nginx Proxy Manager now trust only its Docker network, allowing public HTTPS session cookies to carry `Secure` without disabling direct LAN HTTP sessions.
 
 ## [0.2.1] - 2026-08-08
 
