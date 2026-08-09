@@ -33,7 +33,7 @@ button:disabled { cursor: wait; opacity: .56; }
 .athlete-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
 .athlete-tabs button { padding: 8px 14px; border-radius: var(--radius-md); background: transparent; color: var(--muted); font-weight: 800; }
 .athlete-tabs button:hover { background: var(--cream-deep); color: var(--grass); }
-.athlete-tabs button[data-state='active'] { background: var(--grass); color: white; }
+.athlete-tabs button[aria-pressed='true'] { background: var(--grass); color: white; }
 .filter-controls { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-width: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
 .chip { padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--paper); color: var(--muted); font-weight: 800; white-space: nowrap; }

@@ -2,6 +2,11 @@
 
 All notable changes to Our Team Memories are documented here.
 
+## [0.2.2] - 2026-08-08
+
+### Fixed
+- Athlete timeline filters now use an accessible pressed-button group instead of orphaned Radix tabs whose `aria-controls` targets were not present in the DOM.
+
 ## [0.2.1] - 2026-08-08
 
 ### Fixed

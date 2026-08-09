@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import App from '../src/App.jsx';
 
 const responseFor = (body, status = 200) => new Response(body === null ? null : JSON.stringify(body), {
@@ -185,12 +185,30 @@ describe('timeline UI', () => {
     expect(screen.getByRole('dialog').querySelector('.dialog-scroll')).toBeTruthy();
   });
 
-  it('renders Radix-backed tabs and dialog state through the shadcn primitives', async () => {
-    installApi();
+  it('uses pressed filter buttons instead of orphaned ARIA tabs', async () => {
+    const { calls } = installApi();
     render(<App />);
     await screen.findByRole('heading', { name: 'Mountain West Open' });
 
-    expect(screen.getByRole('tab', { name: 'All family' }).getAttribute('data-state')).toBe('active');
+    const athleteGroup = screen.getByRole('group', { name: 'Choose an athlete' });
+    const allFamily = within(athleteGroup).getByRole('button', { name: 'All family' });
+    const maya = within(athleteGroup).getByRole('button', { name: 'Maya' });
+    expect(allFamily.getAttribute('aria-pressed')).toBe('true');
+    expect(maya.getAttribute('aria-pressed')).toBe('false');
+    expect(allFamily.getAttribute('aria-controls')).toBeNull();
+    expect(screen.queryAllByRole('tab')).toHaveLength(0);
+    expect(within(athleteGroup).getAllByRole('button').every((button) => button.getAttribute('aria-controls') === null)).toBe(true);
+
+    fireEvent.click(maya);
+    await waitFor(() => expect(calls.some(({ pathname }) => new URL(pathname, 'http://test').searchParams.get('athlete_id') === 'ath_maya')).toBe(true));
+    expect(allFamily.getAttribute('aria-pressed')).toBe('false');
+    expect(maya.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('keeps the dialog state through the shadcn primitives', async () => {
+    installApi();
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Mountain West Open' });
     fireEvent.click(screen.getByRole('button', { name: 'Mountain West Open' }));
 
     const dialog = await screen.findByRole('dialog');

@@ -6,7 +6,6 @@ import { Dialog as RadixDialog, DialogClose, DialogContent, DialogDescription, D
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 import { Select } from './components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Textarea } from './components/ui/textarea';
 import './App.css';
 
@@ -660,12 +659,10 @@ export default function App() {
           <div className="hero-visual"><img src="/assets/generated/hero-family-multisport.png" alt="A parent filming children playing different sports" /><span>Every effort has a place here.</span></div>
         </section>
         <section className="filter-bar" aria-label="Timeline filters">
-          <Tabs value={filters.athlete_id || 'all'} onValueChange={(value) => { const athlete_id = value === 'all' ? '' : value; updateFilter('athlete_id', athlete_id); loadTimeline({ ...filters, athlete_id }); }}>
-            <TabsList className="athlete-tabs" aria-label="Choose an athlete">
-              <TabsTrigger value="all">All family</TabsTrigger>
-              {athletes.map((athlete) => <TabsTrigger value={athlete.id} key={athlete.id}>{athlete.name}</TabsTrigger>)}
-            </TabsList>
-          </Tabs>
+          <div className="athlete-tabs" role="group" aria-label="Choose an athlete">
+            <Button variant="unstyled" type="button" aria-pressed={!filters.athlete_id} onClick={() => { updateFilter('athlete_id', ''); loadTimeline({ ...filters, athlete_id: '' }); }}>All family</Button>
+            {athletes.map((athlete) => <Button variant="unstyled" type="button" aria-pressed={filters.athlete_id === athlete.id} onClick={() => { updateFilter('athlete_id', athlete.id); loadTimeline({ ...filters, athlete_id: athlete.id }); }} key={athlete.id}>{athlete.name}</Button>)}
+          </div>
           <div className="filter-controls"><div className="chips" aria-label="Quick sports"><Button variant="secondary" className={!filters.sport_id ? 'chip active' : 'chip'} aria-pressed={!filters.sport_id} onClick={() => { updateFilter('sport_id', ''); loadTimeline({ ...filters, sport_id: '' }); }}>All sports</Button>{availableSports.map((sport) => <Button variant="secondary" className={filters.sport_id === sport.id ? 'chip active' : 'chip'} aria-pressed={filters.sport_id === sport.id} key={sport.id} onClick={() => { updateFilter('sport_id', sport.id); loadTimeline({ ...filters, sport_id: sport.id }); }}>{sport.label}</Button>)}</div><Button variant="secondary" className="filter-btn" onClick={() => setDialog('filters')}>Filters{activeFilterCount(filters) ? ` (${activeFilterCount(filters)})` : ''}</Button></div>
         </section>
         <Status status={loadError ? { type: 'error', message: loadError } : null} />
