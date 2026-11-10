@@ -1,7 +1,7 @@
 # Development and release process
 
 Repository: https://github.com/ezumyn-aliegm/sport-video-public
-Durable checkout: `/Users/demo/work/sport-video`
+Use your own local checkout; no fixed user or machine path is required.
 
 ## Non-negotiable ship path
 

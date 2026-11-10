@@ -12,8 +12,8 @@ const readQaCompose = async () => {
   }
 };
 
-test('QA Compose override trusts the controlled HTTPS proxy', async () => {
+test('QA Compose override requires an operator-supplied exact proxy address', async () => {
   const compose = await readQaCompose();
-  assert.match(compose, /TRUST_PROXY:\s*["']192\.168\.16\.1\/32["']/);
+  assert.ok(compose.includes('${QA_TRUST_PROXY:?'));
   assert.match(compose, /NODE_ENV:\s*production/);
 });

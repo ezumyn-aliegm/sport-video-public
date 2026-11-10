@@ -16,6 +16,7 @@ const legacySports = [
   { id: 'taekwondo', label: 'Taekwondo', sort_order: 5 },
 ];
 
+// Fictional demo records for an empty database; never copied from a family archive.
 const legacyChildren = [
   {
     id: 'child_1',
@@ -45,8 +46,8 @@ const legacyVideos = [
     tags: ['Tournament', 'Highlight'],
     source_type: 'link',
     external_url: 'https://example.invalid/demo/soccer',
-    youtube_url: 'https://example.invalid/demo/soccer',
-    youtube_video_id: 'demo_soccer',
+    youtube_url: null,
+    youtube_video_id: null,
     publish_status: 'ready',
     publish_error: null,
     hidden: 0,
@@ -83,8 +84,8 @@ const legacyVideos = [
     tags: ['Game', 'Fast break'],
     source_type: 'link',
     external_url: 'https://example.invalid/demo/basketball',
-    youtube_url: 'https://example.invalid/demo/basketball',
-    youtube_video_id: 'demo_basketball',
+    youtube_url: null,
+    youtube_video_id: null,
     publish_status: 'ready',
     publish_error: null,
     hidden: 0,
@@ -779,7 +780,7 @@ const seedDemoFixture = async (db) => {
       youtube_video_id, publish_status, publish_error, thumbnail_url, hidden, created_at, updated_at
     ) VALUES (
       'clip_demo_tkd_event', ?, 'evt_demo_tkd_open_2026', NULL, 'Mountain West Open day montage',
-      'link', 'https://example.com/mountain-west-open', 'https://example.com/mountain-west-open',
+      'link', 'https://example.invalid/demo/mountain-west-open', 'https://example.invalid/demo/mountain-west-open',
       NULL, 'ready', NULL, '/assets/generated/event-cover-spring-invitational.png', 0, ?, ?
     )`,
     FAMILY_ID,
@@ -798,8 +799,8 @@ const seedDemoFixture = async (db) => {
       FAMILY_ID,
       momentId,
       `${momentId === 'mom_demo_tkd_qf_2026' ? 'Quarterfinal' : 'Final'} replay`,
-      `https://example.com/${momentId}`,
-      `https://example.com/${momentId}`,
+      `https://example.invalid/demo/${momentId}`,
+      `https://example.invalid/demo/${momentId}`,
       '/assets/generated/thumb-tkd-tournament.png',
       now,
       now

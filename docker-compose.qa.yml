@@ -1,9 +1,7 @@
-# Non-production QA override for the host with a controlled TLS reverse proxy.
-# Keep this file out of production deployments.
+# Optional HTTPS reverse-proxy setup. Set the exact peer address seen by Express.
+# No proxy address from a contributor's deployment is supplied here.
 services:
   sport-video:
     environment:
       NODE_ENV: production
-      # Docker NAT presents Nginx Proxy Manager's forwarded requests as the app bridge gateway.
-      # Direct LAN requests are outside this exact address and keep a non-Secure cookie.
-      TRUST_PROXY: "192.0.2.1/32"
+      TRUST_PROXY: "${QA_TRUST_PROXY:?Set QA_TRUST_PROXY to the exact proxy IPv4 address or /32 CIDR}"

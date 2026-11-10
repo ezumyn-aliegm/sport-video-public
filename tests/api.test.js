@@ -176,7 +176,7 @@ test('direct clients cannot forge a trusted HTTPS forwarded header', async () =>
     const app = createApp({
       familyPinHash: await bcrypt.hash('2468', 4),
       sessionSecret: 'trust-proxy-test-session',
-      trustProxy: '192.0.2.1/32',
+      trustProxy: '192.0.2.10/32',
       uploadDir: path.join(tempTrustProxyDir, 'uploads'),
       distPath: path.join(tempTrustProxyDir, 'dist'),
     });

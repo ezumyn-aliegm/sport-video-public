@@ -1,6 +1,6 @@
 # Our Team Memories
 
-> Multi-sport family highlights organized as Family PIN -> Athlete -> Sport -> Event -> Moment -> Clip. Version 0.2.0.
+> Multi-sport family highlights organized as Family PIN -> Athlete -> Sport -> Event -> Moment -> Clip. Version 0.2.3.
 
 Repository: https://github.com/ezumyn-aliegm/sport-video-public
 
@@ -23,7 +23,27 @@ The Vite UI proxies `/api` and `/uploads` to the local Express server. For the p
 docker compose up -d --build
 ```
 
-The Compose service listens on host port 3015 and maps to the app's port 3000: http://localhost:3015. Host port 3013 is not used by this project. For the non-production host fronted by the controlled Nginx Proxy Manager TLS proxy, use the QA-only override documented in [`docs/QA-DEPLOYMENT.md`](docs/QA-DEPLOYMENT.md) so public HTTPS cookies are Secure while direct LAN HTTP remains usable.
+The Compose service listens on host port 3015 and maps to the app's port 3000: http://localhost:3015. Host port 3013 is not used by this project. For an optional controlled TLS reverse proxy, see
+[`docs/QA-DEPLOYMENT.md`](docs/QA-DEPLOYMENT.md). Supply your own exact
+proxy address; no personal deployment settings are included.
+
+## Demo content and public history
+
+The default empty-database fixture is fictional: Emma, Noah, Maya, their
+teams, opponents, dates, results and sport categories demonstrate the data
+model. They are not a family archive. Demo clip links use `example.invalid`
+and are intentionally not playable videos. New uploads stay local in mock
+mode; no YouTube upload occurs.
+
+Product imagery in `public/assets/generated/` is generated illustration;
+repository screenshots show the demo fixture. No runtime family database,
+private upload folder, live PIN or OAuth credential is included. To explore,
+follow Quick start, set your own local PIN and unlock the demo timeline.
+Do not put real family data in a publicly shared demo instance.
+
+See [PUBLICATION.md](PUBLICATION.md) for the preserved, sanitized history.
+The project is MIT-licensed; see [LICENSE](LICENSE).
+
 
 ## v0.2 domain and API
 

@@ -2,6 +2,16 @@
 
 All notable changes to Our Team Memories are documented here.
 
+## [0.2.3] - 2026-11-10
+
+### Changed
+- Replace private deployment topology and personal checkout paths with reusable
+  setup instructions and an operator-supplied exact QA proxy address.
+- Replace seeded external video links with reserved demo URLs and explicitly
+  fictional opponent names; existing user records are not overwritten.
+- Document fictional demo content, generated artwork, current limitations,
+  MIT licensing and the preserved sanitized development history.
+
 ## [0.2.2] - 2026-08-08
 
 ### Fixed

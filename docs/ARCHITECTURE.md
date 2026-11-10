@@ -1,15 +1,20 @@
 # Architecture
 
-## Stack
-- React + Vite frontend (static build served by Express)
-- Express API + session cookie auth (family PIN)
-- SQLite for catalog
-- Docker compose project `sport-video`
+- React + Vite frontend; the built assets are served by Express.
+- Express API with a shared family PIN and session-cookie authentication.
+- SQLite catalog with a backward-compatible event/moment/clip migration.
+- Private uploads are served only through authenticated routes.
+- Docker Compose maps host port 3015 to container port 3000.
 
-## Deploy
-- Target host: app-host (192.0.2.30) under `/opt/docker/sport-video`
-- Host port: prefer free port (e.g. 3015) mapped to container 3000
-- Public host: `sport-video.example.invalid` via Nginx Proxy Manager
+## Deployment configuration
 
-## Auth model (v1)
-Shared family PIN (bcrypt hash in env). Tradeoffs documented in README.
+Choose your own host, storage volume and HTTPS hostname. No contributor's
+server, domain or network topology is required. The optional QA override
+requires the exact reverse-proxy peer address seen by Express; see
+[QA-DEPLOYMENT.md](QA-DEPLOYMENT.md).
+
+## Scope
+
+This is a single-family application, not a multi-account public video service.
+The shared PIN has no per-user audit trail. Live YouTube publishing is not
+implemented. Demo records and imagery are described in the README.
